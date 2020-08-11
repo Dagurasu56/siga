@@ -57,7 +57,7 @@ function AssinarDocumentos(copia, politica, juntar, tramitar) {
 
 	identificarOperacoes();
 
-	var tipo = verificarTipoDeAssinatura();
+	var tipo = 4;// verificarTipoDeAssinatura();
 
 	if (tipo == 1 || tipo == 3) {
 		if (!TestarAssinaturaDigital()) {
@@ -88,6 +88,13 @@ function AssinarDocumentos(copia, politica, juntar, tramitar) {
 			})) {
 				ExecutarAssinarDocumentos(copia, juntar, tramitar);
 			}
+		});
+	}
+	
+	if (tipo == 4) {
+		provider = providerPIN;
+		provider.inicializar(function() {
+			ExecutarAssinarDocumentos(copia, juntar, tramitar);
 		});
 	}
 }
@@ -668,6 +675,73 @@ var providerPassword = {
 	}
 }
 
+
+//
+//Provider: Assinador com PIN
+//
+var providerPIN = {
+	nome : 'Assinatura com PIN',
+	inicializar : function(cont) {
+		try {															
+			var senhaDialog = $(
+					'<div class="modal fade" tabindex="-1" role="dialog" id="senhaDialog"><div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content">'
+					+ sigaModal.obterCabecalhoPadrao('Assinatura de Documento')
+					+ '<div class="modal-body"><div class="form-group text-center">$("#objetoCadastrante").val()<input id="nomeUsuarioSubscritor" type="hidden" value="' + $('#siglaUsuarioCadastrante').val() + '" /> <label>Informe seu PIN</label><br /><div class="row"><div class="col-3"></div><div class="col-6"> <input type="password" id="senhaUsuarioSubscritor" class="form-control input-lg" style="text-align: center;" aria-describedby="passwordHelp" maxlength="6" autocomplete="off" autofocus /></div></div></div></div>'
+					+ '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button><button type="button" id="senhaOk" class="btn btn-primary"><i class="fa fa-signature"/> Assinar</button></div>'
+					+ '</div></div></div>')
+					.modal();										
+			
+			senhaDialog.on('shown.bs.modal', function () {
+				$(this).find('[autofocus]').focus();
+				
+				$('#nomeUsuarioSubscritor, #senhaUsuarioSubscritor').on('keypress', function(e) {
+					// se pressionado enter
+				    if(e.which == 13) {
+				    	$('#senhaOk').click();				    	
+				    }
+				});
+				
+				$('#senhaOk').click(function () {
+					gLogin = $("#nomeUsuarioSubscritor").val();
+					gPassword = $("#senhaUsuarioSubscritor").val();
+					gAssinando = false;
+					cont();
+					senhaDialog.modal('hide');
+				});
+			});
+			
+			senhaDialog.on('hidden.bs.modal', function () {
+				// gAssinando = flag necessario para reabrir a janela mediante cancelamento ou fechamento da modal
+				// pelo usuário por causa da função AssinarDocumentos que é chamada pelo botão assinar
+				gAssinando = false;
+				$('#senhaDialog').remove();
+			});
+			
+			
+			
+			$(document).delegate('.ui-dialog', 'keyup', function(e) {
+				if((e.which == 13 || e.key === "Enter") && ($("#nomeUsuarioSubscritor").val() === "" || $("#senhaUsuarioSubscritor").val() === "")) {
+					return false;
+				}
+		        var tagName = e.target.tagName.toLowerCase();
+
+		        tagName = (tagName === 'input' && e.target.type === 'button') ? 'button' : tagName;
+
+		        if (e.which === $.ui.keyCode.ENTER && tagName !== 'textarea' && tagName !== 'select' && tagName !== 'button') {
+		            $(this).find('.ui-dialog-buttonset button').eq(0).trigger('click');
+
+		            return false;
+		        }
+		    });
+			return "AGUARDE";
+		} catch (Err) {
+			return Err.description;
+		}
+	}
+}
+
+
+
 //
 // State manager and progress bar
 //
@@ -1032,7 +1106,7 @@ function ExecutarAssinarDocumentos(Copia, Juntar, Tramitar) {
 	process.run();
 }
 
-// 1 = digital, 2 = com senha, 3 = híbrida
+// 1 = digital, 2 = com senha, 3 = híbrida, 4 = com PIN
 function verificarTipoDeAssinatura() {
 	var usePassword = false;
 	var useToken = false;

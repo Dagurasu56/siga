@@ -1670,7 +1670,7 @@ public class ExBL extends CpBL {
 	}
 
 	public String assinarDocumentoComSenha(final DpPessoa cadastrante, final DpLotacao lotaCadastrante,
-			final ExDocumento doc, final Date dtMov, final String matriculaSubscritor, final String senhaSubscritor,
+			final ExDocumento doc, final Date dtMov, final String matriculaSubscritor, final String senhaSubscritor, final boolean senhaIsPIN,
 			final boolean validarSenha, final DpPessoa titular, final boolean autenticando, Boolean juntar,
 			Boolean tramitar) throws Exception {
 

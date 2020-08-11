@@ -2994,7 +2994,7 @@ public class ExMovimentacaoController extends ExController {
 					.getBL()
 					.assinarDocumentoComSenha(getCadastrante(),
 							getLotaTitular(), doc, mov.getDtMov(),
-							nomeUsuarioSubscritor, senhaUsuarioSubscritor, true,
+							nomeUsuarioSubscritor, senhaUsuarioSubscritor, true, true,
 							mov.getTitular(), copia, juntar, tramitar);
 		} catch (final Exception e) {
 			httpError(e);
